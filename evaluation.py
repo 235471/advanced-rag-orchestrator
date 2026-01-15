@@ -7,12 +7,29 @@ from ragas.metrics import (
     context_recall,
 )
 from data_eval import questions, answers
-from clients import get_gemini_chat, get_gemini_embeddings
+from clients import (
+    get_gemini_chat,
+    get_gemini_embeddings,
+    get_groq_chat,
+    get_perplexity_chat,
+)
+
+LLM_PROVIDERS = {
+    "gemini": get_gemini_chat,
+    "groq": get_groq_chat,
+    "perplexity": get_perplexity_chat,
+}
 
 
-def evaluate_rag_with_ragas(qa_chain, llm=None):
-    if llm is None:
-        llm = get_gemini_chat()
+def evaluate_rag_with_ragas(qa_chain, llm_provider="gemini"):
+
+    if llm_provider not in LLM_PROVIDERS:
+        raise ValueError(
+            f"Invalid llm_provider. Choose from: {list(LLM_PROVIDERS.keys())}"
+        )
+
+    llm_getter = LLM_PROVIDERS[llm_provider]
+    llm = llm_getter()
 
     llm_answers = []
     retrieved_context = []
